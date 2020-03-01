@@ -35,7 +35,7 @@ node restaurant.js
 cd 下載位置/restaurant_crud
 npm run dev
 ```
-5. 開啟瀏覽器，輸入網址
+6. 開啟瀏覽器，輸入網址
 > [localhost:3000/](https://localhost:3000/)
 
 ## 功能描述 (features)：
