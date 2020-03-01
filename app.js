@@ -50,18 +50,38 @@ app.get('/', (req, res) => {
     })
 })
 
-// restaurants搜尋頁面 兩個做法 1.先輸出整份清單，用JS比對 2.用mongodb指令去找
-// 因時間不夠所以先試著用1.，之後回頭研究U82
+// restaurants搜尋頁面，目前思考兩個做法(目前看不出哪個做法比較好)：
+// 1.先輸出整份清單，用JS比對 
+
+// app.get('/search', (req, res) => {
+//   const word = req.query.keyword
+//   Restaurant.find()
+//     .lean()
+//     .exec((err, restaurants) => {
+//       if (err) return console.error(err)
+//       const search = restaurants.filter(restaurant => {
+//         return restaurant.name.toLowerCase().includes(word.toLowerCase()) || restaurant.category.toLowerCase().includes(word.toLowerCase())
+//       })
+//       res.render('index', { restaurants: search, keyword: word })
+//     })
+// })
+
+// 2.用mongodb指令去找
+// 參考:
+// https://tinyurl.com/rlqubo3
+// https://tinyurl.com/swdnho5
 app.get('/search', (req, res) => {
   const word = req.query.keyword
-  Restaurant.find()
-    .lean()
+  Restaurant.find({
+    $or: [
+      { 'name': { "$regex": word.toString(), "$options": "i" } },
+      { 'name_en': { "$regex": word.toString(), "$options": "i" } },
+      { 'category': { "$regex": word.toString(), "$options": "i" } },
+    ]
+  }).lean()
     .exec((err, restaurants) => {
       if (err) return console.error(err)
-      const search = restaurants.filter(restaurant => {
-        return restaurant.name.toLowerCase().includes(word.toLowerCase()) || restaurant.category.toLowerCase().includes(word.toLowerCase())
-      })
-      res.render('index', { restaurants: search, keyword: word })
+      res.render('index', { restaurants, keyword: word })
     })
 })
 
@@ -82,6 +102,7 @@ app.get('/restaurants/new', (req, res) => {
 // 資料齊全，就存資料 導覽至主頁
 // 針對資料輸入的優化，等時間夠再來修正 (例如Rating跟phone都是數字)
 // 有排版上的問題，如果不是用card屬性增加edit、Detail、Delete，排版會崩壞
+// Schema內的資料可以設定default，這樣可以不用多做JS檢查是否都有填寫資料
 app.post('/restaurants', (req, res) => {
 
   if (listCheck(req.body)) {
